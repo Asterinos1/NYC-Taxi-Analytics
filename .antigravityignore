@@ -1,0 +1,34 @@
+# Antigravity Ignore Rules
+
+# Version Control
+.git/
+.agents/
+
+# IDE / Editor folders
+.idea/
+.vscode/
+.bloop/
+.metals/
+.sbtserver/
+
+# Secrets & Configs
+.env
+
+# Build Artifacts
+**/target/
+**/project/target/
+**/project/project/
+
+# Data
+data/
+*.csv
+*.parquet
+*.parquet/*
+
+# Logs & Temporal
+airflow/logs/
+*.log
+
+# Agent Specific
+graphify-out/
+*.pdf

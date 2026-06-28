@@ -1,0 +1,56 @@
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scala & SBT
+**/target/
+**/project/target/
+**/project/project/
+.bloop/
+.metals/
+.sbtserver/
+
+# Environments & Secrets
+.env
+!.env.example
+
+# Data (Ignore all files under data/, except .gitkeep)
+data/**
+!data/
+!data/**/
+!data/**/.gitkeep
+
+# Airflow Logs
+airflow/logs/**
+!airflow/logs/
+!airflow/logs/**/
+!airflow/logs/**/.gitkeep
+
+# Agent analysis metadata
+graphify-out/
+
+# Local Spark & Derby Database
+metastore_db/
+derby.log
+spark-warehouse/
+
+# Python / Airflow Virtual Environments and Cache
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/

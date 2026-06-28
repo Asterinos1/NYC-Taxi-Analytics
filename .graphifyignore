@@ -1,0 +1,36 @@
+# Graphify Ignore Rules
+
+# Version Control
+.git/
+.agents/
+
+# IDE / Editor folders
+.idea/
+.vscode/
+.bloop/
+.metals/
+.sbtserver/
+
+# Secrets & Configs
+.env
+.env.example
+
+# Build Artifacts
+**/target/
+**/project/target/
+**/project/project/
+
+# Data Directories (too large/binary for knowledge graph)
+data/
+*.csv
+*.parquet
+*.parquet/*
+
+# Logs & Temporal
+airflow/logs/
+*.log
+
+# Output directory itself to prevent recursion
+graphify-out/
+
+*.pdf
