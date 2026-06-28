@@ -306,10 +306,12 @@ Driver and executor memory are configured in the DAG's `SparkSubmitOperator` arg
 
 ## Version History
 
-| Tag | Description |
-|---|---|
-| `v1.0.0` | Monolithic `App.scala` running locally against HDFS |
-| `v2.0-docker-airflow` | Containerized Spark cluster, Airflow orchestration, Parquet storage |
+| Version | Branch | Description |
+|---|---|---|
+| v1.0.0 | [`archive/v1.0.0`](https://github.com/Asterinos1/NYC-Taxi-Analytics-Spark/tree/archive/v1.0.0) | Monolithic `App.scala` running locally against HDFS. Preserved as-is. |
+| v2.0.0 | `main` | Containerized Spark cluster, Airflow orchestration, Parquet storage (this branch). |
+
+The v1 codebase is preserved in full on the `archive/v1.0.0` branch and will not receive further changes.
 
 The three migrations from v1 to v2:
 1. **Local → Docker**: all dependencies containerized; nothing installed on the host except Docker.
