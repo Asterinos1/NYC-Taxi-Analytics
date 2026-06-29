@@ -39,6 +39,8 @@ airflow/logs/**
 
 # Agent analysis metadata
 graphify-out/
+.antigravityignore
+.graphifyignore
 
 # Local Spark & Derby Database
 metastore_db/
@@ -54,3 +56,9 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .mypy_cache/
+
+docs/runs/*
+docs/screenshots/*
+docs/*.json
+*.md
+!README.md

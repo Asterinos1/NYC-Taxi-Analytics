@@ -32,3 +32,4 @@ airflow/logs/
 # Agent Specific
 graphify-out/
 *.pdf
+!remaining_work.md

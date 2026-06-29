@@ -2,9 +2,18 @@ package jobs
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions.Window
 import common.Schemas
 import common.Paths
 
+/**
+ * CleanJob
+ *
+ * Cleans the raw Bronze data by parsing timestamps, filtering passenger and location
+ * criteria, restricting dates to 2020-2023, and enriching with payment types.
+ * Outputs the Silver partitioned Parquet layer (by year/month) and materializes
+ * a true reservoir sample (Algorithm R equivalent) for approximate queries.
+ */
 object CleanJob {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
@@ -27,7 +36,7 @@ object CleanJob {
       .withColumn("dropoff_datetime", to_timestamp(col("tpep_dropoff_datetime")))
       .filter(col("passenger_count") > 0)
       .filter(col("PULocationID").isNotNull && col("DOLocationID").isNotNull)
-      .filter(col("pickup_datetime").between("2021-01-01", "2023-12-31"))
+      .filter(col("pickup_datetime").between("2020-01-01", "2023-12-31"))
       .withColumn("payment_type_desc", toPaymentTypeUDF(col("payment_type")))
 
     val totalRows = cleanedDF.count()
@@ -44,12 +53,16 @@ object CleanJob {
       .partitionBy("year", "month")
       .parquet(Paths.SilverPath)
 
-    // Generate and write Reservoir Sample
+    // Generate and write Reservoir Sample (exact-k uniform sample)
+    // Uses orderBy(rand) + limit to guarantee exactly k rows, each with
+    // equal selection probability — equivalent to Algorithm R output.
     val targetSampleSize = sys.env.get("TARGET_SAMPLE_SIZE").map(_.toLong).getOrElse(100000L)
-    println(s"Target sample size: $targetSampleSize")
+    val clampedSampleSize = math.min(targetSampleSize, totalRows).toInt
+    println(s"Target sample size: $targetSampleSize (clamped to $clampedSampleSize)")
 
-    val sampleFraction = math.min(1.0, targetSampleSize.toDouble / math.max(1L, totalRows).toDouble)
-    val sampleDF = cleanedDF.sample(withReplacement = false, fraction = sampleFraction, seed = 1234L)
+    val sampleDF = silverDF
+      .orderBy(rand(1234L))
+      .limit(clampedSampleSize)
     val actualSampleSize = sampleDF.count()
     println(s"Actual reservoir sample size: $actualSampleSize")
 

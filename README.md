@@ -1,8 +1,8 @@
-# NYC Taxi Analytics — Spark Pipeline
+# NYC Taxi Analytics - Spark Pipeline
 
-A containerized, Airflow-orchestrated batch analytics pipeline over NYC Yellow Taxi trip data (2021–2023). Compares exact analytical query results against two probabilistic approximation techniques — Reservoir Sampling (Algorithm R) and Count-Min Sketch (CMS) — across a structured three-layer data architecture.
+This project is a containerized, Airflow-orchestrated batch data pipeline designed to process and analyze NYC Yellow Taxi trip data (2021-2023). It compares exact analytical query results against two probabilistic approximation techniques: Reservoir Sampling (Algorithm R) and Count-Min Sketch (CMS), across a structured three-layer data architecture.
 
-This is version 2 of the project. Version 1 was a monolithic Scala/Spark application running locally against HDFS. Version 2 migrates that work into a reproducible Docker-based environment with Apache Airflow orchestrating discrete pipeline stages.
+This is version 2 of the data pipeline project, developed for the course **Machine Learning Systems (2025-2026)** at the **Technical University of Crete (TUC)**. The previous version 1 was a monolithic Scala/Spark application running locally against HDFS, developed for the course **Big Data (2024-2025)**. Version 2 migrates that work into a reproducible Docker-based environment with Apache Airflow orchestrating the discrete data pipeline stages.
 
 ---
 
@@ -17,7 +17,6 @@ This is version 2 of the project. Version 1 was a monolithic Scala/Spark applica
 - [Pipeline Stages](#pipeline-stages)
 - [Development](#development)
 - [Version History](#version-history)
-- [Out of Scope](#out-of-scope)
 - [License](#license)
 
 ---
@@ -42,7 +41,7 @@ This is version 2 of the project. Version 1 was a monolithic Scala/Spark applica
 |---|---|---|
 | Docker Engine | >= 24 | With Docker Compose v2 |
 | Docker Compose | v2 (plugin) | `docker compose`, not `docker-compose` |
-| WSL2 (Windows only) | — | Recommended backend; allocate 10–12 GB via `.wslconfig` |
+| WSL2 (Windows only) | - | Recommended backend; allocate 10-12 GB via `.wslconfig` |
 | Host RAM | >= 16 GB | Spark master + worker + Airflow + Postgres run concurrently |
 | sbt | >= 1.9 | Only required if building the JAR outside Docker |
 | Java | 17 | Bundled inside the Spark image |
@@ -113,7 +112,7 @@ make status
 ### Triggering the pipeline
 
 1. Open the Airflow web UI at [http://localhost:8082](http://localhost:8082).
-2. Log in with the default credentials (`admin` / `admin` on first run — change immediately).
+2. Log in with the default credentials (`admin` / `admin` on first run; change immediately).
 3. Locate the DAG `nyc_taxi_medallion_pipeline` and unpause it.
 4. Trigger a manual run using the "Trigger DAG" button.
 5. Monitor task execution in the Grid or Graph view.
@@ -129,6 +128,25 @@ Each stage is a separate `spark-submit` call via `SparkSubmitOperator`, targetin
 ### Spark UI
 
 The Spark Master UI is available at [http://localhost:8080](http://localhost:8080) while the cluster is running. Use it to inspect active applications, executor allocation, and stage execution plans.
+
+### Screenshots & UI Capture
+
+An automated script captures screenshots of the running Spark and Airflow UIs for deliverables and evidence reports:
+
+* **Location:** `scripts/capture_screenshots.ps1`
+* **Pre-requisite:** Google Chrome installed at the standard location (or update the path in the script).
+* **Airflow Bypass:** Airflow is configured with anonymous Admin access using a custom `webserver_config.py` loaded via the `AIRFLOW__WEBSERVER__WEBSERVER_CONFIG` environment variable in the docker compose file. This allows headless Chrome to capture Airflow views directly without credentials blocking.
+* **Captured Views:**
+  * Spark Master (`http://localhost:8080`) -> `docs/screenshots/spark_master.png`
+  * Spark Worker (`http://localhost:8081`) -> `docs/screenshots/spark_worker.png`
+  * Spark History Server (`http://localhost:18080`) -> `docs/screenshots/spark_history.png`
+  * Airflow Home (`http://localhost:8082`) -> `docs/screenshots/airflow_home.png`
+  * Airflow DAG Grid View (`http://localhost:8082/dags/nyc_taxi_medallion_pipeline/grid`) -> `docs/screenshots/airflow_dag_grid.png`
+
+Run the script from your terminal:
+```powershell
+./scripts/capture_screenshots.ps1
+```
 
 ### Makefile targets
 
@@ -292,7 +310,7 @@ Inject invalid rows into `data/silver/` (e.g., rows with `passenger_count <= 0` 
 
 ### Resource constraints
 
-The full 2021–2023 dataset is approximately 9 GB. During development, use the provided sample or a 1–2 month subset. Configure Spark memory explicitly:
+The full 2021-2023 dataset is approximately 9 GB. During development, use the provided sample or a 1-2 month subset. Configure Spark memory explicitly:
 
 ```bash
 # In .env
@@ -314,28 +332,15 @@ Driver and executor memory are configured in the DAG's `SparkSubmitOperator` arg
 The v1 codebase is preserved in full on the `archive/v1.0.0` branch and will not receive further changes.
 
 The three migrations from v1 to v2:
-1. **Local → Docker**: all dependencies containerized; nothing installed on the host except Docker.
-2. **HDFS → Parquet on shared volume**: HDFS removed entirely.
-3. **Monolith → orchestrated stages**: single job decomposed into four independently re-runnable Airflow tasks.
+1. **Local -> Docker**: all dependencies containerized; nothing installed on the host except Docker.
+2. **HDFS -> Parquet on shared volume**: HDFS removed entirely.
+3. **Monolith -> orchestrated stages**: single job decomposed into four independently re-runnable Airflow tasks.
 
 See `CHANGELOG.md` for detailed migration notes.
 
----
-
-## Out of Scope
-
-The following were deliberately excluded. Each is discussed as a production consideration in the project report.
-
-| Excluded | Reason |
-|---|---|
-| Kubernetes | Operational overhead without proportional learning benefit at this scale |
-| CeleryExecutor / Redis | LocalExecutor is sufficient; Celery adds 3+ containers of RAM |
-| Kafka / Structured Streaming | This is a batch pipeline; streaming is evaluated in the report, not built |
-| Full CI/CD pipeline | Out of scope for a course project |
-| Great Expectations | Lightweight assertions are sufficient at this data scale |
 
 ---
 
 ## License
 
-TODO: Add license information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

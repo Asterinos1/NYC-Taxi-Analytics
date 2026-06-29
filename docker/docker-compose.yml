@@ -30,6 +30,7 @@ services:
     volumes:
       - ../data:/data
       - ../spark-app:/spark-app
+      - ../data/spark-events:/data/spark-events
 
   spark-worker:
     image: apache/spark:3.5.6
@@ -44,6 +45,22 @@ services:
     volumes:
       - ../data:/data
       - ../spark-app:/spark-app
+      - ../data/spark-events:/data/spark-events
+    depends_on:
+      - spark-master
+
+  spark-history-server:
+    image: apache/spark:3.5.6
+    container_name: spark-history-server
+    user: root
+    command: /opt/spark/sbin/start-history-server.sh
+    ports:
+      - "18080:18080"
+    environment:
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///data/spark-events
+      - SPARK_NO_DAEMONIZE=true
+    volumes:
+      - ../data/spark-events:/data/spark-events
     depends_on:
       - spark-master
 
@@ -64,11 +81,15 @@ services:
           --lastname Admin \
           --role Admin \
           --email admin@example.com \
-          --password admin
+          --password admin && \
+        airflow connections add fs_default \
+          --conn-type fs \
+          --conn-extra '{"path": "/"}' || true
     environment:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+      - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=True
       - AIRFLOW__API_AUTH__JWT_SECRET=some-static-32-char-secure-secret-key-1234
       - PYTHONPATH=/home/airflow/.local/lib/python3.13/site-packages
     depends_on:
@@ -87,10 +108,13 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+      - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=True
       - AIRFLOW_CONN_SPARK_DEFAULT=spark://spark-master:7077
+      - AIRFLOW_CONN_FS_DEFAULT=fs://
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://airflow-webserver:8080/execution/
       - AIRFLOW__API_AUTH__JWT_SECRET=some-static-32-char-secure-secret-key-1234
+      - AIRFLOW__FAB__AUTH_ROLE_PUBLIC=Admin
       - PYTHONPATH=/home/airflow/.local/lib/python3.13/site-packages
     volumes:
       - ../airflow/dags:/opt/airflow/dags
@@ -119,10 +143,14 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+      - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=True
       - AIRFLOW_CONN_SPARK_DEFAULT=spark://spark-master:7077
+      - AIRFLOW_CONN_FS_DEFAULT=fs://
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://airflow-webserver:8080/execution/
       - AIRFLOW__API_AUTH__JWT_SECRET=some-static-32-char-secure-secret-key-1234
+      - AIRFLOW__WEBSERVER__WEBSERVER_CONFIG=/opt/airflow/config/webserver_config.py
+      - AIRFLOW__FAB__AUTH_ROLE_PUBLIC=Admin
       - PYTHONPATH=/home/airflow/.local/lib/python3.13/site-packages
     volumes:
       - ../airflow/dags:/opt/airflow/dags
@@ -149,10 +177,13 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+      - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=True
       - AIRFLOW_CONN_SPARK_DEFAULT=spark://spark-master:7077
+      - AIRFLOW_CONN_FS_DEFAULT=fs://
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://airflow-webserver:8080/execution/
       - AIRFLOW__API_AUTH__JWT_SECRET=some-static-32-char-secure-secret-key-1234
+      - AIRFLOW__FAB__AUTH_ROLE_PUBLIC=Admin
       - PYTHONPATH=/home/airflow/.local/lib/python3.13/site-packages
     volumes:
       - ../airflow/dags:/opt/airflow/dags

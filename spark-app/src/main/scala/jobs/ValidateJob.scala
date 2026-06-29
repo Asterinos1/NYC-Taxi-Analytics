@@ -4,6 +4,14 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import common.Paths
 
+/**
+ * ValidateJob
+ *
+ * Quality Gate validator that executes assertions against the Silver Parquet dataset.
+ * Verifies non-empty rows, non-null pickup timestamps, non-null PULocationID values,
+ * and valid passenger counts (> 0). Raises RuntimeException to fail the run if
+ * constraints are violated and writes a sentinel output file on success.
+ */
 object ValidateJob {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()

@@ -29,3 +29,9 @@ shell-airflow:
 
 shell-spark:
 	docker exec -it spark-master bash
+
+run-capture:
+	powershell -ExecutionPolicy Bypass -File scripts/run_and_capture.ps1
+
+run-capture-fault:
+	powershell -ExecutionPolicy Bypass -File scripts/run_and_capture.ps1 -FaultInject

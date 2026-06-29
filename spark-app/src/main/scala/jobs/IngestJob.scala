@@ -4,6 +4,13 @@ import org.apache.spark.sql.SparkSession
 import common.Schemas
 import common.Paths
 
+/**
+ * IngestJob
+ *
+ * Ingests the raw NYC Yellow Taxi multi-year CSV datasets from `/data/raw`
+ * and writes them into the Bronze Parquet layer at `/data/bronze` using the
+ * predefined schema.
+ */
 object IngestJob {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
