@@ -208,7 +208,23 @@ clean_task = SparkSubmitOperator(
 # ---------------------------------------------------------------------------
 
 def _fault_inject_silver(**_context):
-    """Write 3 bad rows into silver to trigger a ValidateJob failure."""
+    """Write 3 bad rows into silver to trigger a ValidateJob failure.
+
+    Skips at runtime when FAULT_INJECT is not 'true', so the task can be
+    permanently wired into the DAG graph without affecting normal runs.
+    """
+    # Runtime check — resolve Variable on every execution, not at parse time.
+    try:
+        from airflow.models import Variable as _Var
+        _inject = _Var.get("FAULT_INJECT", "false").lower() == "true"
+    except Exception:
+        import os as _os
+        _inject = _os.environ.get("FAULT_INJECT", "false").lower() == "true"
+
+    if not _inject:
+        print("[fault_inject_silver] FAULT_INJECT is not 'true' — skipping injection.")
+        return
+
     try:
         import pyarrow as pa
         import pyarrow.parquet as pq
@@ -374,10 +390,10 @@ pipeline_done = EmptyOperator(
 
 wait_for_raw_data >> ingest_task >> clean_task
 
-if FAULT_INJECT:
-    clean_task >> fault_inject_task >> count_task
-else:
-    clean_task >> count_task
+# fault_inject_silver is ALWAYS wired after clean_silver so the graph topology
+# is stable regardless of when the DAG file is parsed.  The task checks the
+# FAULT_INJECT variable at *runtime* and skips itself when it is not 'true'.
+clean_task >> fault_inject_task >> count_task
 
 count_task >> branch_task
 branch_task >> analytics_task >> validate_task >> pipeline_done

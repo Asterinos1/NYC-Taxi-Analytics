@@ -1,0 +1,13 @@
+# Enforce LF line endings for all text files (critical for Docker/Linux compatibility)
+* text=auto eol=lf
+
+# Force bash/sh/ps1 scripts to LF
+*.sh text eol=lf
+*.ps1 text eol=lf
+*.py text eol=lf
+*.scala text eol=lf
+
+# Denote binary files
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.pdf -text

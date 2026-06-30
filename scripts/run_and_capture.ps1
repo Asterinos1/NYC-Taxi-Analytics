@@ -108,6 +108,13 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Airflow Variable FAULT_INJECT set to '$modeStr'." -ForegroundColor Green
 }
 
+# Restart scheduler + dag-processor so the DAG file is re-parsed with the
+# updated FAULT_INJECT value (it controls graph wiring at parse time).
+Write-Host "Restarting Airflow scheduler & dag-processor to re-parse DAG with FAULT_INJECT=$modeStr..." -ForegroundColor DarkGray
+docker compose -f $dockerComposeFile restart airflow-scheduler airflow-dag-processor 2>$null
+Write-Host "Waiting 15 seconds for scheduler to become ready..." -ForegroundColor DarkGray
+Start-Sleep -Seconds 15
+
 # 5. Trigger DAG and Poll State
 if (-not $SkipTrigger) {
     Write-Host "[5/6] Triggering nyc_taxi_medallion_pipeline..." -ForegroundColor Yellow
